@@ -78,7 +78,7 @@ async function run(){
             res.send({token})
         })
 
-        app.get('/reviews',async(req, res)=> {
+        app.get('/reviews', verifyJWT,async(req, res)=> {
 
             let query = {};
             if(req.query.service_id){
