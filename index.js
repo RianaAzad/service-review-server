@@ -42,6 +42,12 @@ async function run(){
             
         });
 
+        app.post('/allServices', async(req, res)=> {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service);
+            res.send(result);
+        })
+
         // review api
 
         app.post('/reviews', async(req, res)=>{
@@ -71,18 +77,6 @@ async function run(){
             res.send(result);
         })
 
-        app.put('/reviews/:id', async(req, res)=>{
-           const id = req.params.id;
-           const rev = req.body.rev;
-           const query = {_id: ObjectId(id)};
-           const updatedReview = {
-            $set: {
-              postedReview: rev
-            }
-           }
-           const result = await reviewCollection.updateOne(query, updatedReview)
-           req.send(result)
-        })
     }
     finally{
 
