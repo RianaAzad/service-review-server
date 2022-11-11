@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -14,6 +15,21 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.6ifow7m.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        res.status(401).send({message:'unauthorized'})
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(error, decoded){
+        if(error){
+            res.status(401).send({message: 'unauthorized'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 async function run(){
     try{
@@ -56,8 +72,14 @@ async function run(){
             res.send(result);
         })
 
+        app.post('/jwt', (req, res)=>{
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn: '60d'})
+            res.send({token})
+        })
 
-        app.get('/reviews', async(req, res)=> {
+        app.get('/reviews',async(req, res)=> {
+
             let query = {};
             if(req.query.service_id){
                 query = {
